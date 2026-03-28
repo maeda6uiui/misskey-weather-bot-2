@@ -63,6 +63,17 @@ mod tests {
     use once_cell::sync::Lazy;
     use polars::df;
 
+    #[test]
+    fn load_emoji_csv_success(){
+        load_emoji_csv(Path::new("./Data/weather_conditions.csv")).unwrap();
+    }
+
+    #[test]
+    fn load_emoji_csv_error(){
+        let result=load_emoji_csv(Path::new("./Data/error.csv"));
+        assert!(result.is_err());
+    }
+
     static DF: Lazy<DataFrame> = Lazy::new(|| {
         df![
             "code"=>&[100,200],
@@ -86,6 +97,6 @@ mod tests {
         assert!(matches!(
             result,
             Err(EmojiConverterError::NoMatchingEmojiFound)
-        ))
+        ));
     }
 }
