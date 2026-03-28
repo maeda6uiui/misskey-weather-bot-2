@@ -1,6 +1,7 @@
 use std::{
     error::{self, Error},
     path::Path,
+    sync::Once,
 };
 
 use polars::{
@@ -14,6 +15,8 @@ use thiserror::Error;
 pub enum EmojiConverterError {
     #[error("no matching emoji found")]
     NoMatchingEmojiFound,
+    #[error("polars error: {0}")]
+    Polars(#[from] polars::error::PolarsError),
 }
 
 pub fn load_emoji_csv(csv_path: &Path) -> Result<DataFrame, Box<dyn Error>> {
@@ -33,7 +36,10 @@ pub fn load_emoji_csv(csv_path: &Path) -> Result<DataFrame, Box<dyn Error>> {
     Ok(df)
 }
 
-pub fn get_condition_emoji(df: &DataFrame, condition_code: i32) -> Result<String, Box<dyn Error>> {
+pub fn get_condition_emoji(
+    df: &DataFrame,
+    condition_code: i32,
+) -> Result<String, EmojiConverterError> {
     let df_result = df
         .clone()
         .lazy()
@@ -45,4 +51,37 @@ pub fn get_condition_emoji(df: &DataFrame, condition_code: i32) -> Result<String
         .get(0)
         .ok_or(EmojiConverterError::NoMatchingEmojiFound)?;
     Ok(emoji.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use once_cell::sync::Lazy;
+    use polars::df;
+
+    static DF: Lazy<DataFrame> = Lazy::new(|| {
+        df![
+            "code"=>&[100,200],
+            "emoji"=>&["☀", "☂"],
+        ]
+        .unwrap()
+    });
+
+    #[test]
+    fn get_condition_emoji_success() {
+        let emoji_sunny = get_condition_emoji(&DF, 100).unwrap();
+        assert_eq!(emoji_sunny, "☀");
+
+        let emoji_rain = get_condition_emoji(&DF, 200).unwrap();
+        assert_eq!(emoji_rain, "☂");
+    }
+
+    #[test]
+    fn get_condition_emoji_error() {
+        let result = get_condition_emoji(&DF, -1);
+        assert!(matches!(
+            result,
+            Err(EmojiConverterError::NoMatchingEmojiFound)
+        ))
+    }
 }

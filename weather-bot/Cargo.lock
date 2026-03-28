@@ -3167,6 +3167,7 @@ dependencies = [
 name = "weather-bot"
 version = "0.1.0"
 dependencies = [
+ "once_cell",
  "polars",
  "thiserror",
 ]
