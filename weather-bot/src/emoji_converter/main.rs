@@ -69,12 +69,12 @@ mod tests {
     }
 
     #[test]
-    fn load_emoji_csv_error(){
+    fn load_emoji_csv_failure(){
         let result=load_emoji_csv(Path::new("./Data/error.csv"));
         assert!(result.is_err());
     }
 
-    static DF: Lazy<DataFrame> = Lazy::new(|| {
+    static TEST_DF: Lazy<DataFrame> = Lazy::new(|| {
         df![
             "code"=>&[100,200],
             "emoji"=>&["☀", "☂"],
@@ -84,16 +84,16 @@ mod tests {
 
     #[test]
     fn get_condition_emoji_success() {
-        let emoji_sunny = get_condition_emoji(&DF, 100).unwrap();
+        let emoji_sunny = get_condition_emoji(&TEST_DF, 100).unwrap();
         assert_eq!(emoji_sunny, "☀");
 
-        let emoji_rain = get_condition_emoji(&DF, 200).unwrap();
+        let emoji_rain = get_condition_emoji(&TEST_DF, 200).unwrap();
         assert_eq!(emoji_rain, "☂");
     }
 
     #[test]
-    fn get_condition_emoji_error() {
-        let result = get_condition_emoji(&DF, -1);
+    fn get_condition_emoji_failure() {
+        let result = get_condition_emoji(&TEST_DF, -1);
         assert!(matches!(
             result,
             Err(EmojiConverterError::NoMatchingEmojiFound)
