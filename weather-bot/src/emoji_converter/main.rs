@@ -46,10 +46,14 @@ pub fn get_condition_emoji(
         .filter(col("code").eq(lit(condition_code)))
         .collect()?;
     let emoji_series = df_result.column("emoji")?;
+    if emoji_series.len()==0{
+        return Err(EmojiConverterError::NoMatchingEmojiFound);
+    }
+
     let emoji = emoji_series
         .str()?
         .get(0)
-        .ok_or(EmojiConverterError::NoMatchingEmojiFound)?;
+        .unwrap();
     Ok(emoji.to_string())
 }
 
