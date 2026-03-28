@@ -19,7 +19,7 @@ pub enum EmojiConverterError {
     Polars(#[from] polars::error::PolarsError),
 }
 
-pub fn load_emoji_csv(csv_path: &Path) -> Result<DataFrame, Box<dyn Error>> {
+pub fn load_emoji_csv(csv_path: &Path) -> Result<DataFrame, EmojiConverterError> {
     let schema = Schema::from_iter(vec![
         Field::new("code".into(), DataType::Int32),
         Field::new("day".into(), DataType::String),
