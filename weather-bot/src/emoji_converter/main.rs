@@ -46,14 +46,11 @@ pub fn get_condition_emoji(
         .filter(col("code").eq(lit(condition_code)))
         .collect()?;
     let emoji_series = df_result.column("emoji")?;
-    if emoji_series.len()==0{
+    if emoji_series.len() == 0 {
         return Err(EmojiConverterError::NoMatchingEmojiFound);
     }
 
-    let emoji = emoji_series
-        .str()?
-        .get(0)
-        .unwrap();
+    let emoji = emoji_series.str()?.get(0).unwrap();
     Ok(emoji.to_string())
 }
 
@@ -64,13 +61,13 @@ mod tests {
     use polars::df;
 
     #[test]
-    fn load_emoji_csv_success(){
+    fn load_emoji_csv_success() {
         load_emoji_csv(Path::new("./Data/weather_conditions.csv")).unwrap();
     }
 
     #[test]
-    fn load_emoji_csv_failure(){
-        let result=load_emoji_csv(Path::new("./Data/error.csv"));
+    fn load_emoji_csv_failure() {
+        let result = load_emoji_csv(Path::new("./Data/error.csv"));
         assert!(result.is_err());
     }
 
