@@ -23,11 +23,15 @@ async fn main() ->Result<(),Box<dyn Error>>{
     //Get text from the weather forecast
     let note_text_generator=NoteTextGenerator::new(Path::new("./Data/weather_conditions.csv"))?;
     let daily_forecast_text=note_text_generator.get_daily_forecast_text(&weather_forecast)?;
+    let hourly_forecast_text=note_text_generator.get_hourly_forecast_text(&weather_forecast)?;
 
     //Create notes on Misskey
     let misskey_client=MisskeyClient::new(&config.misskey_server_url, &config.misskey_access_token)?;
     let misskey_resp=misskey_client.create_note(&daily_forecast_text, NoteVisibility::Direct(Vec::new())).await?;
-    log::info!("note_id: {}",&misskey_resp.created_note.id);
+    log::info!("Note ID of daily forecast: {}",&misskey_resp.created_note.id);
+
+    let misskey_resp=misskey_client.create_note(&hourly_forecast_text, NoteVisibility::Direct(Vec::new())).await?;
+    log::info!("Note ID of hourly forecast: {}",&misskey_resp.created_note.id);
 
     Ok(())
 }
