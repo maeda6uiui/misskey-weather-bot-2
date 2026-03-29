@@ -11,6 +11,7 @@ use crate::weather_api_client::response::WeatherForecastResponse;
 
 pub struct WeatherApiClient {
     api_endpoint: String,
+    access_token:String,
     http_client: Client,
 }
 
@@ -25,36 +26,31 @@ pub enum WeatherApiClientError{
 }
 
 impl WeatherApiClient {
-    pub fn new(
-        api_endpoint: &str,
-        timeout_seconds: u64,
-    ) -> Result<Self, WeatherApiClientError> {
-        let mut default_headers = HeaderMap::new();
-        default_headers.insert(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("application/json"),
-        );
-
+    pub fn new(api_endpoint: &str,access_token:&str) -> Result<Self, WeatherApiClientError> {
         let client_builder = Client::builder();
         let http_client = client_builder
-            .timeout(Duration::from_secs(timeout_seconds))
+            .timeout(Duration::from_secs(10))
             .build()?;
         Ok(WeatherApiClient {
             api_endpoint: api_endpoint.to_string(),
+            access_token:access_token.to_string(),
             http_client,
         })
     }
 
     pub async fn get_weather_forecast(
         &self,
-        weather_api_key: &str,
         q: &str,
         days: i32,
     ) -> Result<WeatherForecastResponse, WeatherApiClientError> {
         let mut headers = HeaderMap::new();
         headers.insert(
+            header::CONTENT_TYPE,
+            HeaderValue::from_static("application/json"),
+        );
+        headers.insert(
             HeaderName::try_from("key").unwrap(),
-            HeaderValue::from_str(weather_api_key)?,
+            HeaderValue::from_str(&self.access_token)?,
         );
 
         let params = HashMap::from([("q", q.to_string()), ("days", days.to_string())]);
