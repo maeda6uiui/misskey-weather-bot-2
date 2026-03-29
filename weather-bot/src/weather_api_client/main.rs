@@ -7,7 +7,7 @@ use reqwest::{
 };
 use thiserror::Error;
 
-use crate::weather_api_client::response::WeatherForecastResponse;
+use crate::weather_api_client::entity::WeatherForecastResponse;
 
 pub struct WeatherApiClient {
     api_endpoint: String,
