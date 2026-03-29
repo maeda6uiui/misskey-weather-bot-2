@@ -11,11 +11,17 @@ pub struct SsmClient{
 #[derive(Debug,Error)]
 pub enum SsmClientError{
     #[error("sdk error: {0}")]
-    GetParameterError(String),
+    SdkError(String),
     #[error("no parameter found: {0}")]
     NoParameterFoundError(String),
     #[error("no value found: {0}")]
     NoValueFoundError(String),
+}
+
+impl<T> From<SdkError<T>> for SsmClientError{
+    fn from(from:SdkError<T>)->SsmClientError{
+        SsmClientError::SdkError(from.to_string())
+    }
 }
 
 impl SsmClient{
@@ -33,13 +39,8 @@ impl SsmClient{
             .name(name)
             .with_decryption(true)
             .send()
-            .await;
-        let resp_result=match resp{
-            Ok(v)=>Ok(v),
-            Err(e)=>Err(SsmClientError::GetParameterError(e.to_string())),
-        }?;
-
-        let parameter=match resp_result.parameter(){
+            .await?;
+        let parameter=match resp.parameter(){
             Some(v)=>Ok(v.value()),
             None=>Err(SsmClientError::NoParameterFoundError(name.to_string())),
         }?;
