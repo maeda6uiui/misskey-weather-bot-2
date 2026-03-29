@@ -58,8 +58,8 @@ impl WeatherApiClient {
             Ok(v)=>Ok(v),
             Err(e)=>Err(WeatherApiClientError::UrlParseError(e.to_string())),
         }?;
-        let request_builder = self.http_client.get(url);
-        let response = request_builder
+        let response = self.http_client
+            .get(url)
             .headers(headers)
             .send()
             .await?
