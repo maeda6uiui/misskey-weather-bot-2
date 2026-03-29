@@ -62,7 +62,7 @@ impl MisskeyClient{
             text:text.to_string(),
         };
 
-        let endpoint=format!("{}/notes/create",&self.server_url);
+        let endpoint=format!("{}/api/notes/create",&self.server_url);
         let url=match Url::parse(&endpoint){
             Ok(v)=>Ok(v),
             Err(e)=>Err(MisskeyClientError::UrlParseError(e.to_string())),
