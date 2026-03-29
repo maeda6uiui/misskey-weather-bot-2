@@ -3,6 +3,8 @@ use std::{env::{self, VarError}, num::ParseIntError};
 use clap::Parser;
 use thiserror::Error;
 
+use crate::aws::ssm::{SsmClient, SsmClientError};
+
 pub struct Config{
     pub weather_api_access_token:String,
     pub weather_api_query:String,
@@ -19,6 +21,8 @@ pub enum ConfigError{
     MissingEnvVarError(#[from] VarError),
     #[error("cannot parse string into number: {0}")]
     NumberParseError(#[from] ParseIntError),
+    #[error("ssm client error: {0}")]
+    SsmClientError(#[from] SsmClientError),
 }
 
 #[derive(Debug,Parser)]
@@ -45,7 +49,7 @@ impl Config{
     /// Set `WEATHER_BOT_RUNTIME = lambda`.
     /// Access tokens are loaded from AWS Parameter Store.
     /// Other values are loaded from the environment variables of the Lambda function.
-    pub fn new(override_args:Option<LocalArgs>)->Result<Self,ConfigError>{
+    pub async fn new(override_args:Option<LocalArgs>)->Result<Self,ConfigError>{
         let runtime=match env::var("WEATHER_BOT_RUNTIME"){
             Ok(v)=>v,
             Err(_)=>"local".to_string(),
@@ -53,7 +57,7 @@ impl Config{
 
         match runtime.as_str(){
             "local"=>Self::load_locally(override_args),
-            "lambda"=>Self::load_on_lambda(),
+            "lambda"=>Self::load_on_lambda().await,
             other=>Err(ConfigError::UnknownRuntimeError(other.to_string())),
         }
     }
@@ -77,15 +81,21 @@ impl Config{
         })
     }
 
-    fn load_on_lambda()->Result<Config,ConfigError>{
-        //Todo: Load access tokens from parameter store
+    async fn load_on_lambda()->Result<Config,ConfigError>{
+        //Load access tokens from parameter store
+        let aws_region=env::var("AWS_REGION")?;
+        let ssm_client=SsmClient::new(&aws_region).await;
+
+        let weather_api_access_token_path=env::var("WEATHER_API_ACCESS_TOKEN_PATH")?;
+        let misskey_access_token_path=env::var("MISSKEY_ACCESS_TOKEN_PATH")?;
+
+        let weather_api_access_token=ssm_client.get_parameter(&weather_api_access_token_path).await?;
+        let misskey_access_token=ssm_client.get_parameter(&misskey_access_token_path).await?;
 
         //Load some variables from environment variables
-        let weather_api_access_token=env::var("WEATHER_API_ACCESS_TOKEN")?;
         let weather_api_query=env::var("WEATHER_API_QUERY")?;
         let weather_api_days=env::var("WEATHER_API_DAYS")?;
         let misskey_server_url=env::var("MISSKEY_SERVER_URL")?;
-        let misskey_access_token=env::var("MISSKEY_ACCESS_TOKEN")?;
 
         Ok(Config { 
             weather_api_access_token,
@@ -110,15 +120,15 @@ mod tests{
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn invalid_runtime(){
+    async fn invalid_runtime(){
         remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "invalid");
         }
 
-        let result=Config::new(None);
+        let result=Config::new(None).await;
         assert!(
             matches!(
                 result,
@@ -127,9 +137,9 @@ mod tests{
         );
     }
 
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn load_locally_success(){
+    async fn load_locally_success(){
         remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "local");
@@ -143,7 +153,7 @@ mod tests{
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
         ]).unwrap();
-        let config=Config::new(Some(args)).unwrap();
+        let config=Config::new(Some(args)).await.unwrap();
 
         assert_eq!(config.weather_api_access_token,"access_token");
         assert_eq!(config.weather_api_query,"Tokyo");
@@ -152,9 +162,9 @@ mod tests{
         assert_eq!(config.misskey_access_token,"access_token");
     }
 
-    #[test]
+    #[tokio::test]
     #[serial]
-    fn load_locally_missing_env_var(){
+    async fn load_locally_missing_env_var(){
         remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "local");
@@ -167,7 +177,7 @@ mod tests{
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
         ]).unwrap();
-        let result=Config::new(Some(args));
+        let result=Config::new(Some(args)).await;
         assert!(
             matches!(
                 result,
