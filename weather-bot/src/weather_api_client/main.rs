@@ -17,7 +17,7 @@ impl WeatherApiClient {
     pub fn new(
         api_endpoint: &str,
         timeout_seconds: u64,
-    ) -> Result<WeatherApiClient, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error>> {
         let mut default_headers = HeaderMap::new();
         default_headers.insert(
             header::CONTENT_TYPE,
