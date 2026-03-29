@@ -19,8 +19,8 @@ pub enum SsmClientError{
 }
 
 impl<T> From<SdkError<T>> for SsmClientError{
-    fn from(from:SdkError<T>)->SsmClientError{
-        SsmClientError::SdkError(from.to_string())
+    fn from(value:SdkError<T>)->SsmClientError{
+        SsmClientError::SdkError(value.to_string())
     }
 }
 
