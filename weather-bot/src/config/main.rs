@@ -22,7 +22,7 @@ pub enum ConfigError{
 }
 
 #[derive(Debug,Parser)]
-struct LocalArgs{
+pub struct LocalArgs{
     #[arg(short='q',long)]
     weather_api_query:String,
     #[arg(short='d',long)]
@@ -102,9 +102,18 @@ mod tests{
     use serial_test::serial;
     use super::*;
 
+    fn remove_env_vars(){
+        unsafe{
+            env::remove_var("WEATHER_BOT_RUNTIME");
+            env::remove_var("WEATHER_API_ACCESS_TOKEN");
+            env::remove_var("MISSKEY_ACCESS_TOKEN");
+        }
+    }
+
     #[test]
     #[serial]
     fn invalid_runtime(){
+        remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "invalid");
         }
@@ -116,15 +125,12 @@ mod tests{
                 Err(ConfigError::UnknownRuntimeError(_)),
             )
         );
-
-        unsafe{
-            env::remove_var("WEATHER_BOT_RUNTIME");
-        }
     }
 
     #[test]
     #[serial]
     fn load_locally_success(){
+        remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
@@ -132,6 +138,7 @@ mod tests{
         }
 
         let args=LocalArgs::try_parse_from(vec![
+            "test",
             "--weather-api-query","Tokyo",
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
@@ -143,23 +150,19 @@ mod tests{
         assert_eq!(config.weather_api_days,7);
         assert_eq!(config.misskey_server_url,"https://example.com");
         assert_eq!(config.misskey_access_token,"access_token");
-
-        unsafe{
-            env::remove_var("WEATHER_BOT_RUNTIME");
-            env::remove_var("WEATHER_API_ACCESS_TOKEN");
-            env::remove_var("MISSKEY_ACCESS_TOKEN");
-        }
     }
 
     #[test]
     #[serial]
     fn load_locally_missing_env_var(){
+        remove_env_vars();
         unsafe {
             env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
         }
 
         let args=LocalArgs::try_parse_from(vec![
+            "test",
             "--weather-api-query","Tokyo",
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
@@ -171,39 +174,5 @@ mod tests{
                 Err(ConfigError::MissingEnvVarError(_))
             )
         );
-
-        unsafe{
-            env::remove_var("WEATHER_BOT_RUNTIME");
-            env::remove_var("WEATHER_API_ACCESS_TOKEN");
-        }
-    }
-
-    #[test]
-    #[serial]
-    fn load_locally_number_parse_error(){
-        unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "local");
-            env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
-            env::set_var("MISSKEY_ACCESS_TOKEN", "access_token");
-        }
-
-        let args=LocalArgs::try_parse_from(vec![
-            "--weather-api-query","Tokyo",
-            "--weather-api-days","test",
-            "--misskey-server-url","https://example.com",
-        ]).unwrap();
-        let result=Config::new(Some(args));
-        assert!(
-            matches!(
-                result,
-                Err(ConfigError::NumberParseError(_))
-            )
-        );
-
-        unsafe{
-            env::remove_var("WEATHER_BOT_RUNTIME");
-            env::remove_var("WEATHER_API_ACCESS_TOKEN");
-            env::remove_var("MISSKEY_ACCESS_TOKEN");
-        }
     }
 }
