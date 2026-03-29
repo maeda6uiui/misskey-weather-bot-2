@@ -6,6 +6,7 @@ use thiserror::Error;
 use crate::aws::ssm::{SsmClient, SsmClientError};
 
 pub struct Config{
+    pub weather_api_endpoint:String,
     pub weather_api_access_token:String,
     pub weather_api_query:String,
     pub weather_api_days:i32,
@@ -27,6 +28,8 @@ pub enum ConfigError{
 
 #[derive(Debug,Parser)]
 pub struct LocalArgs{
+    #[arg(short='w',long,default_value="https://api.weatherapi.com/v1/forecast.json")]
+    weather_api_endpoint:String,
     #[arg(short='q',long)]
     weather_api_query:String,
     #[arg(short='d',long)]
@@ -73,6 +76,7 @@ impl Config{
             None=>LocalArgs::parse(),
         };
         Ok(Config{
+            weather_api_endpoint:args.weather_api_endpoint,
             weather_api_access_token,
             weather_api_query:args.weather_api_query,
             weather_api_days:args.weather_api_days,
@@ -93,11 +97,13 @@ impl Config{
         let misskey_access_token=ssm_client.get_parameter(&misskey_access_token_path).await?;
 
         //Load some variables from environment variables
+        let weather_api_endpoint=env::var("WEATHER_API_ENDPOINT")?;
         let weather_api_query=env::var("WEATHER_API_QUERY")?;
         let weather_api_days=env::var("WEATHER_API_DAYS")?;
         let misskey_server_url=env::var("MISSKEY_SERVER_URL")?;
 
         Ok(Config { 
+            weather_api_endpoint,
             weather_api_access_token,
             weather_api_query, 
             weather_api_days:weather_api_days.parse()?, 
@@ -149,6 +155,7 @@ mod tests{
 
         let args=LocalArgs::try_parse_from(vec![
             "test",
+            "--weather-api-endpoint","https://example.com",
             "--weather-api-query","Tokyo",
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
@@ -156,6 +163,7 @@ mod tests{
         let config=Config::new(Some(args)).await.unwrap();
 
         assert_eq!(config.weather_api_access_token,"access_token");
+        assert_eq!(config.weather_api_endpoint,"https://example.com");
         assert_eq!(config.weather_api_query,"Tokyo");
         assert_eq!(config.weather_api_days,7);
         assert_eq!(config.misskey_server_url,"https://example.com");
@@ -173,6 +181,7 @@ mod tests{
 
         let args=LocalArgs::try_parse_from(vec![
             "test",
+            "--weather-api-endpoint","https://example.com",
             "--weather-api-query","Tokyo",
             "--weather-api-days","7",
             "--misskey-server-url","https://example.com",
