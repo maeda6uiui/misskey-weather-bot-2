@@ -1,5 +1,33 @@
-mod emoji_converter;
+use std::{env, error::Error, path::Path};
 
-fn main() {
-    println!("Hello, world!");
+use crate::{config::main::Config, misskey_client::{entity::NoteVisibility, main::MisskeyClient}, note_text_generator::main::NoteTextGenerator, weather_api_client::main::WeatherApiClient};
+
+mod config;
+mod emoji_converter;
+mod weather_api_client;
+mod aws;
+mod misskey_client;
+mod note_text_generator;
+
+#[tokio::main]
+async fn main() ->Result<(),Box<dyn Error>>{
+    env_logger::init();
+
+    //Load config
+    let config=Config::new(None).await?;
+
+    //Get weather forecast
+    let weather_api_client=WeatherApiClient::new(&config.weather_api_endpoint, &config.weather_api_access_token)?;
+    let weather_forecast=weather_api_client.get_weather_forecast(&config.weather_api_query, config.weather_api_days).await?;
+
+    //Get text from the weather forecast
+    let note_text_generator=NoteTextGenerator::new(Path::new("./Data/weather_conditions.csv"))?;
+    let daily_forecast_text=note_text_generator.get_daily_forecast_text(&weather_forecast)?;
+
+    //Create notes on Misskey
+    let misskey_client=MisskeyClient::new(&config.misskey_server_url, &config.misskey_access_token)?;
+    let misskey_resp=misskey_client.create_note(&daily_forecast_text, NoteVisibility::Direct(Vec::new())).await?;
+    log::info!("note_id: {}",&misskey_resp.created_note.id);
+
+    Ok(())
 }
