@@ -25,6 +25,13 @@ impl NoteTextGenerator{
         let location=&forecast.location.name;
         let date=&forecast.forecast.forecastday[0].date;
 
+        let astro=&forecast.forecast.forecastday[0].astro;
+        let sunrise=&astro.sunrise;
+        let sunset=&astro.sunset;
+        let moonrise=&astro.moonrise;
+        let moonset=&astro.moonset;
+        let moon_phase=&astro.moon_phase;
+
         let daily_forecast=&forecast.forecast.forecastday[0].day;
         let condition_code=daily_forecast.condition.code;
         let condition_text=&daily_forecast.condition.text;
@@ -38,6 +45,9 @@ impl NoteTextGenerator{
             [{date}] Weather forcast in {location}
             {condition_emoji}{condition_text}
             {avgtemp_c} ℃ (avg) / {mintemp_c} ℃ (min) / {maxtemp_c} ℃ (max)
+            ---
+            🌄 {sunrise} - {sunset}
+            🌕 {moonrise} - {moonset} / {moon_phase}
             "#
         };
         Ok(text.to_string())
@@ -72,6 +82,7 @@ mod tests{
     use super::*;
     use crate::weather_api_client::entity::{Astro, Condition, Day, Forecast, ForecastdayItem, HourItem, Location};
     use once_cell::sync::Lazy;
+    use polars::prelude::streaming;
 
     // ----------------------------
     // Helpers
@@ -91,6 +102,11 @@ mod tests{
         avg: f32,
         min: f32,
         max: f32,
+        sunrise:&str,
+        sunset:&str,
+        moonrise:&str,
+        moonset:&str,
+        moon_phase:&str,
         hours: Vec<HourItem>,
     ) -> WeatherForecastResponse {
         WeatherForecastResponse {
@@ -109,11 +125,11 @@ mod tests{
                         },
                     },
                     astro: Astro {
-                        sunrise: "".to_string(),
-                        sunset: "".to_string(),
-                        moonrise: "".to_string(),
-                        moonset: "".to_string(),
-                        moon_phase: "".to_string(),
+                        sunrise: sunrise.to_string(),
+                        sunset: sunset.to_string(),
+                        moonrise: moonrise.to_string(),
+                        moonset: moonset.to_string(),
+                        moon_phase: moon_phase.to_string(),
                     },
                     hour: hours,
                 }],
@@ -154,6 +170,11 @@ mod tests{
             15.0,
             10.0,
             20.0,
+            "05:33 AM",
+            "06:00 PM",
+            "02:08 PM",
+            "03:26 AM",
+            "Waxing Gibbous",
             vec![],
         );
         let emoji =
@@ -166,6 +187,9 @@ mod tests{
             [2026-03-29] Weather forcast in Tokyo
             {emoji}Sunny
             15 ℃ (avg) / 10 ℃ (min) / 20 ℃ (max)
+            ---
+            🌄 05:33 AM - 06:00 PM
+            🌕 02:08 PM - 03:26 AM / Waxing Gibbous
             "#
         };
         assert_eq!(text, expected);
@@ -180,6 +204,11 @@ mod tests{
             0.0,
             0.0,
             0.0,
+            "05:33 AM",
+            "06:00 PM",
+            "02:08 PM",
+            "03:26 AM",
+            "Waxing Gibbous",
             vec![
                 sample_hour("2026-03-29 09:00", 12.0, 1000, "Sunny"),
                 sample_hour("2026-03-29 12:00", 18.0, 1000, "Sunny"),
