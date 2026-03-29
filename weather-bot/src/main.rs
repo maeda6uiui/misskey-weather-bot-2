@@ -1,4 +1,4 @@
-use std::{env, error::Error, path::Path};
+use std::{error::Error, path::Path};
 
 use crate::{config::main::Config, misskey_client::{entity::NoteVisibility, main::MisskeyClient}, note_text_generator::main::NoteTextGenerator, weather_api_client::main::WeatherApiClient};
 

@@ -1,5 +1,4 @@
-use aws_config::SdkConfig;
-use aws_sdk_ssm::{Client, error::SdkError, operation::get_parameter::GetParameterError};
+use aws_sdk_ssm::{Client, error::SdkError};
 use thiserror::Error;
 
 use crate::aws::config::create_sdk_config;

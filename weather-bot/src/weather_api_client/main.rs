@@ -1,6 +1,5 @@
-use std::{collections::HashMap, error::Error, string::ParseError, time::Duration};
+use std::{collections::HashMap, time::Duration};
 
-use polars::frame::DataFrame;
 use reqwest::{
     Client, Url,
     header::{self, HeaderMap, HeaderName, HeaderValue, InvalidHeaderValue},

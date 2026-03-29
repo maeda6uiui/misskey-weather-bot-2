@@ -1,7 +1,6 @@
 use std::time::Duration;
 
-use reqwest::{Client, Url, header::{self, HeaderMap, HeaderName, HeaderValue, InvalidHeaderValue}};
-use serde::{Deserialize, Serialize};
+use reqwest::{Client, Url, header::{self, HeaderMap, HeaderValue, InvalidHeaderValue}};
 use thiserror::Error;
 
 use crate::misskey_client::entity::{CreateNoteRequest, CreateNoteResponse, NoteVisibility};

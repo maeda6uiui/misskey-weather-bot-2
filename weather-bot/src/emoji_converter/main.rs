@@ -1,8 +1,4 @@
-use std::{
-    error::{self, Error},
-    path::Path,
-    sync::Once,
-};
+use std::path::Path;
 
 use polars::{
     frame::DataFrame,
