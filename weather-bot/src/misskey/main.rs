@@ -1,5 +1,6 @@
 use misskey::ClientExt;
 use misskey::HttpClient;
+use misskey::model::note::Note;
 use thiserror::Error;
 
 pub struct MisskeyClient{
@@ -23,10 +24,10 @@ impl MisskeyClient{
         Ok(MisskeyClient { client })
     }
 
-    pub async fn create_note(&self,text:&str)->Result<(),MisskeyClientError>{
+    pub async fn create_note(&self,text:&str)->Result<Note,MisskeyClientError>{
         let result=self.client.create_note(text).await;
         match result{
-            Ok(_)=>Ok(()),
+            Ok(v)=>Ok(v),
             Err(e)=>Err(MisskeyClientError::SdkError(e.to_string())),
         }
     }
