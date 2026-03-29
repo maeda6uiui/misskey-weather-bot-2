@@ -33,13 +33,13 @@ impl NoteTextGenerator{
         let mintemp_c=daily_forecast.mintemp_c;
         let maxtemp_c=daily_forecast.maxtemp_c;
 
-        let text=format!(
+        let text=indoc::formatdoc! {
             r#"
             [{date}] Weather forcast in {location}
             {condition_emoji}{condition_text}
             {avgtemp_c} ℃ (avg) / {mintemp_c} ℃ (min) / {maxtemp_c} ℃ (max)
             "#
-        );
+        };
         Ok(text.to_string())
     }
 }
