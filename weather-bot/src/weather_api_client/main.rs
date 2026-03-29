@@ -27,8 +27,7 @@ pub enum WeatherApiClientError{
 
 impl WeatherApiClient {
     pub fn new(api_endpoint: &str,access_token:&str) -> Result<Self, WeatherApiClientError> {
-        let client_builder = Client::builder();
-        let http_client = client_builder
+        let http_client = Client::builder()
             .timeout(Duration::from_secs(10))
             .build()?;
         Ok(WeatherApiClient {
