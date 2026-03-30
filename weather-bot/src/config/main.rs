@@ -9,6 +9,7 @@ use thiserror::Error;
 use crate::aws::ssm::{SsmClient, SsmClientError};
 
 pub struct Config {
+    pub emoji_csv_filepath: String,
     pub weather_api_endpoint: String,
     pub weather_api_access_token: String,
     pub weather_api_query: String,
@@ -19,8 +20,8 @@ pub struct Config {
 
 #[derive(Error, Debug)]
 pub enum ConfigError {
-    #[error("unknown runtime: {0}")]
-    UnknownRuntimeError(String),
+    #[error("unknown runtime")]
+    UnknownRuntimeError,
     #[error("missing environment variable: {0}")]
     MissingEnvVarError(#[from] VarError),
     #[error("cannot parse string into number: {0}")]
@@ -31,6 +32,8 @@ pub enum ConfigError {
 
 #[derive(Debug, Parser)]
 pub struct LocalArgs {
+    #[arg(short = 'e', long, default_value = "./Data/weather_conditions.csv")]
+    emoji_csv_filepath: String,
     #[arg(
         short = 'w',
         long,
@@ -49,26 +52,28 @@ impl Config {
     /// Creates a new config.
     ///
     /// ## Test locally
-    /// Set `WEATHER_BOT_RUNTIME = local`.
+    /// Build the binary with `local` feature enabled.
+    ///
+    /// ```
+    /// cargo build --no-default-features --features local
+    /// ```
+    ///
     /// Access tokens are loaded from environment variables.
     /// Other values are loaded from command line arguments.
     /// Specify `override_args` if you want to manually construct the `LocalArgs` struct,
     /// rather than depending on the actual parsing of environment variables.
     ///
     /// ## Test on Lambda
-    /// Set `WEATHER_BOT_RUNTIME = lambda`.
+    /// This is the default feature when no feature flags are specified.
     /// Access tokens are loaded from AWS Parameter Store.
     /// Other values are loaded from the environment variables of the Lambda function.
     pub async fn new(override_args: Option<LocalArgs>) -> Result<Self, ConfigError> {
-        let runtime = match env::var("WEATHER_BOT_RUNTIME") {
-            Ok(v) => v,
-            Err(_) => "local".to_string(),
-        };
-
-        match runtime.as_str() {
-            "local" => Self::load_locally(override_args),
-            "lambda" => Self::load_on_lambda().await,
-            other => Err(ConfigError::UnknownRuntimeError(other.to_string())),
+        if cfg!(feature = "local") {
+            return Self::load_locally(override_args);
+        } else if cfg!(feature = "default") {
+            return Self::load_on_lambda().await;
+        } else {
+            return Err(ConfigError::UnknownRuntimeError);
         }
     }
 
@@ -83,6 +88,7 @@ impl Config {
             None => LocalArgs::parse(),
         };
         Ok(Config {
+            emoji_csv_filepath: args.emoji_csv_filepath,
             weather_api_endpoint: args.weather_api_endpoint,
             weather_api_access_token,
             weather_api_query: args.weather_api_query,
@@ -106,12 +112,14 @@ impl Config {
         let misskey_access_token = ssm_client.get_parameter(&misskey_access_token_path).await?;
 
         //Load some variables from environment variables
+        let emoji_csv_filepath = env::var("EMOJI_CSV_FILEPATH")?;
         let weather_api_endpoint = env::var("WEATHER_API_ENDPOINT")?;
         let weather_api_query = env::var("WEATHER_API_QUERY")?;
         let weather_api_days = env::var("WEATHER_API_DAYS")?;
         let misskey_server_url = env::var("MISSKEY_SERVER_URL")?;
 
         Ok(Config {
+            emoji_csv_filepath,
             weather_api_endpoint,
             weather_api_access_token,
             weather_api_query,
@@ -129,7 +137,6 @@ mod tests {
 
     fn remove_env_vars() {
         unsafe {
-            env::remove_var("WEATHER_BOT_RUNTIME");
             env::remove_var("WEATHER_API_ACCESS_TOKEN");
             env::remove_var("MISSKEY_ACCESS_TOKEN");
         }
@@ -137,28 +144,17 @@ mod tests {
 
     #[tokio::test]
     #[serial]
-    async fn invalid_runtime() {
-        remove_env_vars();
-        unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "invalid");
-        }
-
-        let result = Config::new(None).await;
-        assert!(matches!(result, Err(ConfigError::UnknownRuntimeError(_)),));
-    }
-
-    #[tokio::test]
-    #[serial]
     async fn load_locally_success() {
         remove_env_vars();
         unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
             env::set_var("MISSKEY_ACCESS_TOKEN", "access_token");
         }
 
         let args = LocalArgs::try_parse_from(vec![
             "test",
+            "--emoji-csv-filepath",
+            "./Data/weather_conditions.csv",
             "--weather-api-endpoint",
             "https://example.com",
             "--weather-api-query",
@@ -184,12 +180,13 @@ mod tests {
     async fn load_locally_missing_env_var() {
         remove_env_vars();
         unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
         }
 
         let args = LocalArgs::try_parse_from(vec![
             "test",
+            "--emoji-csv-filepath",
+            "./Data/weather_conditions.csv",
             "--weather-api-endpoint",
             "https://example.com",
             "--weather-api-query",

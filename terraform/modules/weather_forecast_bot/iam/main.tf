@@ -36,7 +36,26 @@ resource "aws_iam_policy" "allow_lambda_access_to_cloudwatch_logs" {
   })
 }
 
+resource "aws_iam_policy" "allow_lambda_access_to_ssm_parameter" {
+  name = "${var.service}-allow-lambda-access-to-ssm-parameter-${var.env}"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = "ssm:GetParameter"
+        Resource = var.ssm_parameter_arns
+      }
+    ]
+  })
+}
+
 resource "aws_iam_role_policy_attachment" "allow_lambda_access_to_cloudwatch_logs" {
   role       = aws_iam_role.lambda.name
   policy_arn = aws_iam_policy.allow_lambda_access_to_cloudwatch_logs.arn
+}
+
+resource "aws_iam_role_policy_attachment" "allow_lambda_access_to_ssm_parameter" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = aws_iam_policy.allow_lambda_access_to_ssm_parameter.arn
 }
