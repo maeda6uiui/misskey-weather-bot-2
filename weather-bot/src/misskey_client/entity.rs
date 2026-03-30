@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-pub enum NoteVisibility{
+pub enum NoteVisibility {
     Public,
     Home,
     Followers,
@@ -8,20 +8,20 @@ pub enum NoteVisibility{
 }
 
 #[derive(Deserialize)]
-pub struct Note{
-    pub id:String,
+pub struct Note {
+    pub id: String,
 }
 
 #[derive(Serialize)]
-pub struct CreateNoteRequest{
-    pub visibility:String,
-    #[serde(rename="visibleUserIds")]
-    pub visible_user_ids:Vec<String>,
-    pub text:String,
+pub struct CreateNoteRequest {
+    pub visibility: String,
+    #[serde(rename = "visibleUserIds")]
+    pub visible_user_ids: Vec<String>,
+    pub text: String,
 }
 
 #[derive(Deserialize)]
-pub struct CreateNoteResponse{
-    #[serde(rename="createdNote")]
-    pub created_note:Note
+pub struct CreateNoteResponse {
+    #[serde(rename = "createdNote")]
+    pub created_note: Note,
 }

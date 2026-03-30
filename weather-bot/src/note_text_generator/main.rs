@@ -3,44 +3,50 @@ use std::path::Path;
 use polars::frame::DataFrame;
 use thiserror::Error;
 
-use crate::{emoji_converter::main::{EmojiConverterError, get_condition_emoji, load_emoji_csv}, weather_api_client::entity::WeatherForecastResponse};
+use crate::{
+    emoji_converter::main::{EmojiConverterError, get_condition_emoji, load_emoji_csv},
+    weather_api_client::entity::WeatherForecastResponse,
+};
 
-pub struct NoteTextGenerator{
-    df_emoji:DataFrame
+pub struct NoteTextGenerator {
+    df_emoji: DataFrame,
 }
 
-#[derive(Debug,Error)]
-pub enum NoteTextGeneratorError{
+#[derive(Debug, Error)]
+pub enum NoteTextGeneratorError {
     #[error("emoji converter error: {0}")]
-    EmojiConverterError(#[from] EmojiConverterError)
+    EmojiConverterError(#[from] EmojiConverterError),
 }
 
-impl NoteTextGenerator{
-    pub fn new(emoji_csv_path:&Path)->Result<Self,NoteTextGeneratorError>{
-        let df_emoji=load_emoji_csv(emoji_csv_path)?;
+impl NoteTextGenerator {
+    pub fn new(emoji_csv_path: &Path) -> Result<Self, NoteTextGeneratorError> {
+        let df_emoji = load_emoji_csv(emoji_csv_path)?;
         Ok(NoteTextGenerator { df_emoji })
     }
 
-    pub fn get_daily_forecast_text(&self,forecast:&WeatherForecastResponse)->Result<String,NoteTextGeneratorError>{
-        let location=&forecast.location.name;
-        let date=&forecast.forecast.forecastday[0].date;
+    pub fn get_daily_forecast_text(
+        &self,
+        forecast: &WeatherForecastResponse,
+    ) -> Result<String, NoteTextGeneratorError> {
+        let location = &forecast.location.name;
+        let date = &forecast.forecast.forecastday[0].date;
 
-        let astro=&forecast.forecast.forecastday[0].astro;
-        let sunrise=&astro.sunrise;
-        let sunset=&astro.sunset;
-        let moonrise=&astro.moonrise;
-        let moonset=&astro.moonset;
-        let moon_phase=&astro.moon_phase;
+        let astro = &forecast.forecast.forecastday[0].astro;
+        let sunrise = &astro.sunrise;
+        let sunset = &astro.sunset;
+        let moonrise = &astro.moonrise;
+        let moonset = &astro.moonset;
+        let moon_phase = &astro.moon_phase;
 
-        let daily_forecast=&forecast.forecast.forecastday[0].day;
-        let condition_code=daily_forecast.condition.code;
-        let condition_text=&daily_forecast.condition.text;
-        let condition_emoji=get_condition_emoji(&self.df_emoji, condition_code)?;
-        let avgtemp_c=daily_forecast.avgtemp_c;
-        let mintemp_c=daily_forecast.mintemp_c;
-        let maxtemp_c=daily_forecast.maxtemp_c;
+        let daily_forecast = &forecast.forecast.forecastday[0].day;
+        let condition_code = daily_forecast.condition.code;
+        let condition_text = &daily_forecast.condition.text;
+        let condition_emoji = get_condition_emoji(&self.df_emoji, condition_code)?;
+        let avgtemp_c = daily_forecast.avgtemp_c;
+        let mintemp_c = daily_forecast.mintemp_c;
+        let maxtemp_c = daily_forecast.maxtemp_c;
 
-        let text=indoc::formatdoc! {
+        let text = indoc::formatdoc! {
             r#"
             [{date}] Weather forcast in {location}
             {condition_emoji}{condition_text}
@@ -53,23 +59,26 @@ impl NoteTextGenerator{
         Ok(text.to_string())
     }
 
-    pub fn get_hourly_forecast_text(&self,forecast:&WeatherForecastResponse)->Result<String,NoteTextGeneratorError>{
-        let location=&forecast.location.name;
-        let date=&forecast.forecast.forecastday[0].date;
-        let mut text=format!("[{date}] Hourly weather forecast in {location}\n\n");
+    pub fn get_hourly_forecast_text(
+        &self,
+        forecast: &WeatherForecastResponse,
+    ) -> Result<String, NoteTextGeneratorError> {
+        let location = &forecast.location.name;
+        let date = &forecast.forecast.forecastday[0].date;
+        let mut text = format!("[{date}] Hourly weather forecast in {location}\n\n");
 
-        let hourly_forecast=&forecast.forecast.forecastday[0].hour;
-        for v in hourly_forecast.iter(){
-            let time=&v.time;
-            let time_splits:Vec<&str>=time.split(" ").collect();
-            let time=time_splits[1];
+        let hourly_forecast = &forecast.forecast.forecastday[0].hour;
+        for v in hourly_forecast.iter() {
+            let time = &v.time;
+            let time_splits: Vec<&str> = time.split(" ").collect();
+            let time = time_splits[1];
 
-            let temp_c=v.temp_c;
-            let condition_code=v.condition.code;
-            let condition_text=&v.condition.text;
-            let condition_emoji=get_condition_emoji(&self.df_emoji, condition_code)?;
+            let temp_c = v.temp_c;
+            let condition_code = v.condition.code;
+            let condition_text = &v.condition.text;
+            let condition_emoji = get_condition_emoji(&self.df_emoji, condition_code)?;
 
-            let line=format!("{time} / {temp_c} ℃ / {condition_emoji}{condition_text}\n");
+            let line = format!("{time} / {temp_c} ℃ / {condition_emoji}{condition_text}\n");
             text.push_str(&line);
         }
 
@@ -78,9 +87,11 @@ impl NoteTextGenerator{
 }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use super::*;
-    use crate::weather_api_client::entity::{Astro, Condition, Day, Forecast, ForecastdayItem, HourItem, Location};
+    use crate::weather_api_client::entity::{
+        Astro, Condition, Day, Forecast, ForecastdayItem, HourItem, Location,
+    };
     use once_cell::sync::Lazy;
     use polars::prelude::streaming;
 
@@ -102,11 +113,11 @@ mod tests{
         avg: f32,
         min: f32,
         max: f32,
-        sunrise:&str,
-        sunset:&str,
-        moonrise:&str,
-        moonset:&str,
-        moon_phase:&str,
+        sunrise: &str,
+        sunset: &str,
+        moonrise: &str,
+        moonset: &str,
+        moon_phase: &str,
         hours: Vec<HourItem>,
     ) -> WeatherForecastResponse {
         WeatherForecastResponse {
@@ -137,12 +148,7 @@ mod tests{
         }
     }
 
-    fn sample_hour(
-        datetime: &str,
-        temp: f32,
-        code: i32,
-        text: &str,
-    ) -> HourItem {
+    fn sample_hour(datetime: &str, temp: f32, code: i32, text: &str) -> HourItem {
         HourItem {
             time: datetime.to_string(),
             time_epoch: 0,
@@ -157,12 +163,11 @@ mod tests{
     // ----------------------------
     // Tests
     // ----------------------------
-    static GENERATOR:Lazy<NoteTextGenerator>=Lazy::new(||{
-        NoteTextGenerator::new(Path::new("./Data/weather_conditions.csv")).unwrap()
-    });
+    static GENERATOR: Lazy<NoteTextGenerator> =
+        Lazy::new(|| NoteTextGenerator::new(Path::new("./Data/weather_conditions.csv")).unwrap());
 
     #[test]
-    fn get_daily_forecast_text(){
+    fn get_daily_forecast_text() {
         let forecast = sample_forecast(
             "2026-03-29",
             1000,
@@ -177,11 +182,8 @@ mod tests{
             "Waxing Gibbous",
             vec![],
         );
-        let emoji =
-            get_condition_emoji(&GENERATOR.df_emoji, 1000).unwrap();
-        let text = GENERATOR
-            .get_daily_forecast_text(&forecast)
-            .unwrap();
+        let emoji = get_condition_emoji(&GENERATOR.df_emoji, 1000).unwrap();
+        let text = GENERATOR.get_daily_forecast_text(&forecast).unwrap();
         let expected = indoc::formatdoc! {
             r#"
             [2026-03-29] Weather forcast in Tokyo
@@ -196,7 +198,7 @@ mod tests{
     }
 
     #[test]
-    fn get_hourly_forecast_text(){
+    fn get_hourly_forecast_text() {
         let forecast = sample_forecast(
             "2026-03-29",
             1000,
@@ -214,11 +216,8 @@ mod tests{
                 sample_hour("2026-03-29 12:00", 18.0, 1000, "Sunny"),
             ],
         );
-        let emoji =
-            get_condition_emoji(&GENERATOR.df_emoji, 1000).unwrap();
-        let text = GENERATOR
-            .get_hourly_forecast_text(&forecast)
-            .unwrap();
+        let emoji = get_condition_emoji(&GENERATOR.df_emoji, 1000).unwrap();
+        let text = GENERATOR.get_hourly_forecast_text(&forecast).unwrap();
         let expected = format!(
             "[2026-03-29] Hourly weather forecast in Tokyo\n\n\
              09:00 / 12 ℃ / {emoji}Sunny\n\
