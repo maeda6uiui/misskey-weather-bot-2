@@ -13,6 +13,10 @@ on:
       awsDeploymentRoleArn:
         required: true
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -50,4 +54,3 @@ jobs:
           aws lambda update-function-code \
             --function-name ${{inputs.lambdaFunctionName}} \
             --image-uri ${{env.REGISTRY}}/${{inputs.ecrRepoName}}:${{env.IMAGE_TAG}}
-    
