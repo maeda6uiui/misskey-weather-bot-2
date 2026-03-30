@@ -2,6 +2,10 @@ variable "service" {
   type = string
 }
 
+variable "env" {
+  type = string
+}
+
 variable "schedule_expression" {
   type = string
 }
