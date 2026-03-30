@@ -137,7 +137,6 @@ mod tests {
 
     fn remove_env_vars() {
         unsafe {
-            env::remove_var("WEATHER_BOT_RUNTIME");
             env::remove_var("WEATHER_API_ACCESS_TOKEN");
             env::remove_var("MISSKEY_ACCESS_TOKEN");
         }
@@ -148,7 +147,6 @@ mod tests {
     async fn load_locally_success() {
         remove_env_vars();
         unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
             env::set_var("MISSKEY_ACCESS_TOKEN", "access_token");
         }
@@ -182,7 +180,6 @@ mod tests {
     async fn load_locally_missing_env_var() {
         remove_env_vars();
         unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "local");
             env::set_var("WEATHER_API_ACCESS_TOKEN", "access_token");
         }
 
