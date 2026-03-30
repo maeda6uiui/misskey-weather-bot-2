@@ -34,7 +34,7 @@ async fn function_handler(_: LambdaEvent<Value>) -> Result<(), lambda_runtime::E
         .await?;
 
     //Get text from the weather forecast
-    let note_text_generator = NoteTextGenerator::new(Path::new("./Data/weather_conditions.csv"))?;
+    let note_text_generator = NoteTextGenerator::new(Path::new(&config.emoji_csv_filepath))?;
     let daily_forecast_text = note_text_generator.get_daily_forecast_text(&weather_forecast)?;
     let hourly_forecast_text = note_text_generator.get_hourly_forecast_text(&weather_forecast)?;
 

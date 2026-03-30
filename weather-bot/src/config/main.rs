@@ -9,6 +9,7 @@ use thiserror::Error;
 use crate::aws::ssm::{SsmClient, SsmClientError};
 
 pub struct Config {
+    pub emoji_csv_filepath: String,
     pub weather_api_endpoint: String,
     pub weather_api_access_token: String,
     pub weather_api_query: String,
@@ -31,6 +32,8 @@ pub enum ConfigError {
 
 #[derive(Debug, Parser)]
 pub struct LocalArgs {
+    #[arg(short = 'e', long, default_value = "./Data/weather_conditions.csv")]
+    emoji_csv_filepath: String,
     #[arg(
         short = 'w',
         long,
@@ -83,6 +86,7 @@ impl Config {
             None => LocalArgs::parse(),
         };
         Ok(Config {
+            emoji_csv_filepath: args.emoji_csv_filepath,
             weather_api_endpoint: args.weather_api_endpoint,
             weather_api_access_token,
             weather_api_query: args.weather_api_query,
@@ -106,12 +110,14 @@ impl Config {
         let misskey_access_token = ssm_client.get_parameter(&misskey_access_token_path).await?;
 
         //Load some variables from environment variables
+        let emoji_csv_filepath = env::var("EMOJI_CSV_FILEPATH")?;
         let weather_api_endpoint = env::var("WEATHER_API_ENDPOINT")?;
         let weather_api_query = env::var("WEATHER_API_QUERY")?;
         let weather_api_days = env::var("WEATHER_API_DAYS")?;
         let misskey_server_url = env::var("MISSKEY_SERVER_URL")?;
 
         Ok(Config {
+            emoji_csv_filepath,
             weather_api_endpoint,
             weather_api_access_token,
             weather_api_query,
@@ -159,6 +165,8 @@ mod tests {
 
         let args = LocalArgs::try_parse_from(vec![
             "test",
+            "--emoji-csv-filepath",
+            "./Data/weather_conditions.csv",
             "--weather-api-endpoint",
             "https://example.com",
             "--weather-api-query",
@@ -190,6 +198,8 @@ mod tests {
 
         let args = LocalArgs::try_parse_from(vec![
             "test",
+            "--emoji-csv-filepath",
+            "./Data/weather_conditions.csv",
             "--weather-api-endpoint",
             "https://example.com",
             "--weather-api-query",
