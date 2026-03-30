@@ -1,4 +1,7 @@
-use std::{error::Error, path::Path};
+use std::{path::Path};
+
+use lambda_runtime::{LambdaEvent, service_fn};
+use serde_json::Value;
 
 use crate::{config::main::Config, misskey_client::{entity::NoteVisibility, main::MisskeyClient}, note_text_generator::main::NoteTextGenerator, weather_api_client::main::WeatherApiClient};
 
@@ -9,8 +12,8 @@ mod aws;
 mod misskey_client;
 mod note_text_generator;
 
-#[tokio::main]
-async fn main() ->Result<(),Box<dyn Error>>{
+async fn function_handler(_:LambdaEvent<Value>)->Result<(),lambda_runtime::Error>{
+    //Set up logger
     env_logger::init();
 
     //Load config
@@ -34,4 +37,9 @@ async fn main() ->Result<(),Box<dyn Error>>{
     log::info!("Note ID of hourly forecast: {}",&misskey_resp.created_note.id);
 
     Ok(())
+}
+
+#[tokio::main]
+async fn main() ->Result<(),lambda_runtime::Error>{
+    lambda_runtime::run(service_fn(function_handler)).await
 }
