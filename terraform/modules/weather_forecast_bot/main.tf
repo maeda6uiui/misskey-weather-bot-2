@@ -12,15 +12,15 @@ module "cloudwatch" {
   source = "./cloudwatch"
 
   service = var.service
-  env         = var.env
+  env     = var.env
 }
 
 module "iam" {
   source = "./iam"
 
   service = var.service
-  env         = var.env
-  aws         = var.aws
+  env     = var.env
+  aws     = var.aws
 
   cloudwatch_log_group_arn = module.cloudwatch.log_group.main.arn
 }
@@ -29,7 +29,7 @@ module "lambda" {
   source = "./lambda"
 
   service = var.service
-  env         = var.env
+  env     = var.env
 
   lambda_config = var.lambda_config
 

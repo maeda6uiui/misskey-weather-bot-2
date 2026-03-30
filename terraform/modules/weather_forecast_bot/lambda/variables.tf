@@ -8,9 +8,9 @@ variable "env" {
 
 variable "lambda_config" {
   type = object({
-    timeout     = number
-    memory_size = number
-    environment_variables=map(string)
+    timeout               = number
+    memory_size           = number
+    environment_variables = map(string)
   })
 }
 

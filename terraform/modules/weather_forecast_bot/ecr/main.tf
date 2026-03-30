@@ -1,5 +1,5 @@
 resource "aws_ecr_repository" "main" {
-  name = "lambda/misskey-weather-bot-2"
+  name                 = "lambda/misskey-weather-bot-2"
   image_tag_mutability = "IMMUTABLE"
 }
 
