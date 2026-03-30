@@ -57,7 +57,7 @@ impl Config {
     /// ```
     /// cargo build --no-default-features --features local
     /// ```
-    /// 
+    ///
     /// Access tokens are loaded from environment variables.
     /// Other values are loaded from command line arguments.
     /// Specify `override_args` if you want to manually construct the `LocalArgs` struct,
@@ -68,11 +68,11 @@ impl Config {
     /// Access tokens are loaded from AWS Parameter Store.
     /// Other values are loaded from the environment variables of the Lambda function.
     pub async fn new(override_args: Option<LocalArgs>) -> Result<Self, ConfigError> {
-        if cfg!(feature="local"){
+        if cfg!(feature = "local") {
             return Self::load_locally(override_args);
-        }else if cfg!(feature="default"){
+        } else if cfg!(feature = "default") {
             return Self::load_on_lambda().await;
-        }else{
+        } else {
             return Err(ConfigError::UnknownRuntimeError);
         }
     }
