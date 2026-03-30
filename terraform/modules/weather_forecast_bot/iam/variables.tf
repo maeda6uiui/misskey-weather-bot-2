@@ -16,3 +16,7 @@ variable "aws" {
 variable "cloudwatch_log_group_arn" {
   type = string
 }
+
+variable "ssm_parameter_arns" {
+  type = list(string)
+}

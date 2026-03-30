@@ -23,6 +23,9 @@ module "iam" {
   aws     = var.aws
 
   cloudwatch_log_group_arn = module.cloudwatch.log_group.main.arn
+  ssm_parameter_arns = [
+    for _, v in module.ssm.parameter : v.arn
+  ]
 }
 
 module "lambda" {

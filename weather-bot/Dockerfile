@@ -8,7 +8,7 @@ RUN cargo build --release --target x86_64-unknown-linux-musl
 
 FROM public.ecr.aws/lambda/provided:al2023
 
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/weather-bot /var/task/bootstrap
-COPY Data/ /var/task/Data/
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/weather-bot /var/runtime/bootstrap
+COPY Data/ /var/runtime/Data/
 ENV RUST_LOG=info
 CMD ["bootstrap"]
