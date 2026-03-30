@@ -39,6 +39,15 @@ async fn function_handler(_:LambdaEvent<Value>)->Result<(),lambda_runtime::Error
     Ok(())
 }
 
+#[cfg(feature="local")]
+#[tokio::main]
+async fn main()->Result<(),lambda_runtime::Error>{
+    function_handler(
+        LambdaEvent::new(serde_json::json!({}), Default::default())
+    ).await
+}
+
+#[cfg(feature="default")]
 #[tokio::main]
 async fn main() ->Result<(),lambda_runtime::Error>{
     lambda_runtime::run(service_fn(function_handler)).await

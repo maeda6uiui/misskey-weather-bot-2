@@ -3,6 +3,10 @@ name = "weather-bot"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+local = []
+
 [dependencies]
 polars = { version = "0.53.0", features = ["lazy", "csv"] }
 thiserror = "2.0.18"
