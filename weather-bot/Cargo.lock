@@ -4450,7 +4450,7 @@ dependencies = [
 
 [[package]]
 name = "weather-bot"
-version = "0.1.0"
+version = "2026.3.0"
 dependencies = [
  "aws-config",
  "aws-sdk-ssm",
