@@ -42,7 +42,7 @@ async fn function_handler(_: LambdaEvent<Value>) -> Result<(), lambda_runtime::E
     let misskey_client =
         MisskeyClient::new(&config.misskey_server_url, &config.misskey_access_token)?;
     let misskey_resp = misskey_client
-        .create_note(&daily_forecast_text, NoteVisibility::Direct(Vec::new()))
+        .create_note(&daily_forecast_text, NoteVisibility::Public)
         .await?;
     log::info!(
         "Note ID of daily forecast: {}",
@@ -50,7 +50,7 @@ async fn function_handler(_: LambdaEvent<Value>) -> Result<(), lambda_runtime::E
     );
 
     let misskey_resp = misskey_client
-        .create_note(&hourly_forecast_text, NoteVisibility::Direct(Vec::new()))
+        .create_note(&hourly_forecast_text, NoteVisibility::Public)
         .await?;
     log::info!(
         "Note ID of hourly forecast: {}",

@@ -44,6 +44,7 @@ module "eventbridge" {
   source = "./eventbridge"
 
   service = var.service
+  env     = var.env
 
   lambda_arn          = module.lambda.main.arn
   lambda_name         = module.lambda.main.function_name
