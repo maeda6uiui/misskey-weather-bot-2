@@ -46,7 +46,7 @@ resource "aws_iam_policy" "allow_github_actions_access_to_ecr" {
           "ecr:BatchGetImage",
           "ecr:BatchCheckLayerAvailability"
         ]
-        Resource = var.misskey_weather_bot.ecr.main.arn
+        Resource = var.weather_forecast_bot.ecr.main.arn
       },
       {
         Effect   = "Allow"
@@ -65,7 +65,7 @@ resource "aws_iam_policy" "allow_github_actions_access_to_lambda" {
       {
         Effect   = "Allow"
         Action   = "lambda:UpdateFunctionCode"
-        Resource = var.misskey_weather_bot.lambda.main.arn
+        Resource = var.weather_forecast_bot.lambda.main.arn
       }
     ]
   })

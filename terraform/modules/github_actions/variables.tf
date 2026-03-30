@@ -13,7 +13,7 @@ variable "github_info" {
   })
 }
 
-variable "misskey_weather_bot" {
+variable "weather_forecast_bot" {
   type = object({
     ecr = object({
       main = object({

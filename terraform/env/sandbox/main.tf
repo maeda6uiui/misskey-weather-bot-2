@@ -2,8 +2,8 @@ module "account_info" {
   source = "../../modules/account_info"
 }
 
-module "misskey_weather_bot" {
-  source = "../../modules/misskey_weather_bot"
+module "weather_forecast_bot" {
+  source = "../../modules/weather_forecast_bot"
 
   service = local.service
   env     = local.env
@@ -30,7 +30,7 @@ module "github_actions" {
   service = local.service
   env     = local.env
 
-  misskey_weather_bot = module.misskey_weather_bot
+  weather_forecast_bot = module.weather_forecast_bot
 
   github_info = {
     username  = "maeda6uiui"
