@@ -20,8 +20,8 @@ pub struct Config {
 
 #[derive(Error, Debug)]
 pub enum ConfigError {
-    #[error("unknown runtime: {0}")]
-    UnknownRuntimeError(String),
+    #[error("unknown runtime")]
+    UnknownRuntimeError,
     #[error("missing environment variable: {0}")]
     MissingEnvVarError(#[from] VarError),
     #[error("cannot parse string into number: {0}")]
@@ -52,26 +52,28 @@ impl Config {
     /// Creates a new config.
     ///
     /// ## Test locally
-    /// Set `WEATHER_BOT_RUNTIME = local`.
+    /// Build the binary with `local` feature enabled.
+    ///
+    /// ```
+    /// cargo build --no-default-features --features local
+    /// ```
+    /// 
     /// Access tokens are loaded from environment variables.
     /// Other values are loaded from command line arguments.
     /// Specify `override_args` if you want to manually construct the `LocalArgs` struct,
     /// rather than depending on the actual parsing of environment variables.
     ///
     /// ## Test on Lambda
-    /// Set `WEATHER_BOT_RUNTIME = lambda`.
+    /// This is the default feature when no feature flags are specified.
     /// Access tokens are loaded from AWS Parameter Store.
     /// Other values are loaded from the environment variables of the Lambda function.
     pub async fn new(override_args: Option<LocalArgs>) -> Result<Self, ConfigError> {
-        let runtime = match env::var("WEATHER_BOT_RUNTIME") {
-            Ok(v) => v,
-            Err(_) => "local".to_string(),
-        };
-
-        match runtime.as_str() {
-            "local" => Self::load_locally(override_args),
-            "lambda" => Self::load_on_lambda().await,
-            other => Err(ConfigError::UnknownRuntimeError(other.to_string())),
+        if cfg!(feature="local"){
+            return Self::load_locally(override_args);
+        }else if cfg!(feature="default"){
+            return Self::load_on_lambda().await;
+        }else{
+            return Err(ConfigError::UnknownRuntimeError);
         }
     }
 
@@ -139,18 +141,6 @@ mod tests {
             env::remove_var("WEATHER_API_ACCESS_TOKEN");
             env::remove_var("MISSKEY_ACCESS_TOKEN");
         }
-    }
-
-    #[tokio::test]
-    #[serial]
-    async fn invalid_runtime() {
-        remove_env_vars();
-        unsafe {
-            env::set_var("WEATHER_BOT_RUNTIME", "invalid");
-        }
-
-        let result = Config::new(None).await;
-        assert!(matches!(result, Err(ConfigError::UnknownRuntimeError(_)),));
     }
 
     #[tokio::test]
