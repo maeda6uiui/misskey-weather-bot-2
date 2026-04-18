@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - weather-bot/**
+      - "!weather-bot/**.md"
+      - "!weather-bot/**.png"
   workflow_dispatch:
 
 permissions:
