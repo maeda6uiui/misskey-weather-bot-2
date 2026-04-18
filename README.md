@@ -2,6 +2,17 @@
 
 Code for the bot to post weather forecast on Misskey 
 
+## What the bot does
+
+The bot posts the following content at 7 AM JST every day:
+
+- Weather forecast summary for the day
+- Hourly weather forecast
+
+The schedule and the city name for weather forecast can be changed from Terraform code. 
+
+![sample posts](./Image/sample_posts.png)
+
 ## How to set up the bot
 
 1. Spin up required AWS resources with Terraform<br>See [README.md](./terraform/README.md) of the terraform directory for further info.

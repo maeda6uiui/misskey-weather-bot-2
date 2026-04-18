@@ -47,3 +47,14 @@ Once you set the secret, you can trigger `./github/workflows/deploy-lambda-prod.
 
 If you don't want to use GitHub Actions for some reason, then check the commands executed in `./github/workflows/deploy-lambda.yml`.
 It basically builds a Docker image, pushes it to an ECR repo, and updates the Lambda function with `aws lambda update-function-code`.
+
+---
+
+One thing you have to do before the bot functions properly, is to set access tokens to Parameter Store.
+You have to set the following parameters:
+
+- weather-api-access-token
+- misskey-access-token
+
+As the name suggests, they are the access token for Weather API and Misskey respectively.
+The parameters are created by Terraform with a dummy value in it, so update the value from AWS Management Console accordingly.
