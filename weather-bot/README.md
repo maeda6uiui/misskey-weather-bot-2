@@ -41,8 +41,8 @@ RUST_LOG=info cargo run --no-default-features --features local -- \
 ## Deploy to Lambda
 
 Using the deployment workflow is the easiest way to deploy the code to Lambda.
-Set the ARN of the IAM role to a GitHub secret (`AWS_DEPLOYMENT_ROLE_ARN_PROD`).
-It is output when you run `terraform apply` (check README.md of the terraform directory for further information).
+Set the ARN of the IAM role to a GitHub secret (`AWS_DEPLOYMENT_ROLE_ARN_PROD`) of your GitHub repo.
+It can be obtained when you run `terraform apply` (check README.md of the terraform directory for further information).
 Once you set the secret, you can trigger `./github/workflows/deploy-lambda-prod.yml` manually or by pushing your changes to main.
 
 If you don't want to use GitHub Actions for some reason, then check the commands executed in `./github/workflows/deploy-lambda.yml`.
