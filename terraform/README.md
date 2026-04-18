@@ -1,6 +1,6 @@
 # terraform
 
-Set up a AWS Lambda function with Terraform
+Set up an AWS Lambda function with Terraform
 
 ## How to run it
 
