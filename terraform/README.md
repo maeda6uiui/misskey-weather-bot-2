@@ -7,7 +7,7 @@ Set up an AWS Lambda function with Terraform
 Below is the procedure to spin up the resources for production.
 You need an AWS account before moving on to the next step.
 
-### Edit providers.tf
+### Edit env/prod/providers.tf
 
 Create an S3 bucket to store the state file, and set the bucket name to `bucket`.
 Change the `region` according to the region where the S3 bucket is hosted.
@@ -20,7 +20,7 @@ backend "s3" {
 }
 ```
 
-### Edit info.tf
+### Edit env/prod/info.tf
 
 `managed_by` is used for the tag set to the resources.
 It doesn't affect the actual functionality of the resources, but you could change it to your repo URL in case you fork this repo.
