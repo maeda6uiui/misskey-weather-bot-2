@@ -92,6 +92,15 @@ module "github_actions" {
 
 ### Run Terraform
 
+You need the following commands installed on your system:
+
+- bash
+- aws
+- docker
+
+They are required to build and push a temporary image to the ECR repo.
+Creation of Lambda functions fails without a Docker image present on the ECR repo.
+
 Run `terraform plan` and check the plan result.
 
 ```
