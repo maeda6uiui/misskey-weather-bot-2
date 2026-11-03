@@ -8,7 +8,7 @@ default = []
 local = []
 
 [dependencies]
-polars = { version = "0.53.0", features = ["lazy", "csv"] }
+polars = { version = "0.55.2", features = ["lazy", "csv"] }
 thiserror = "2.0.18"
 reqwest = { version = "0.13", features = ["json"] }
 tokio = { version = "1", features = ["full"] }
@@ -24,4 +24,4 @@ serde_json = "1.0.149"
 
 [dev-dependencies]
 once_cell = "1.21.4"
-serial_test = "3.4.0"
+serial_test = "4.0.1"
