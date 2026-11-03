@@ -1,6 +1,6 @@
 [package]
 name = "weather-bot"
-version = "2026.3.0"
+version = "2026.11.0"
 edition = "2024"
 
 [features]
